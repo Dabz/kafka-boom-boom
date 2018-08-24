@@ -1,0 +1,110 @@
+#!/bin/bash
+
+docker-compose down -v
+ZOOKEEPER_SERVERS="zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888" docker-compose up -d 
+
+KAFKA_1_IP=`docker-compose exec kafka-1 bash -c "hostname -I"`
+KAFKA_2_IP=`docker-compose exec kafka-2 bash -c "hostname -I"`
+KAFKA_3_IP=`docker-compose exec kafka-3 bash -c "hostname -I"`
+KAFKA_4_IP=`docker-compose exec kafka-4 bash -c "hostname -I"`
+ZOO_1_IP=`docker-compose exec zookeeper-1 bash -c "hostname -I"`
+ZOO_2_IP=`docker-compose exec zookeeper-2 bash -c "hostname -I"`
+ZOO_3_IP=`docker-compose exec zookeeper-3 bash -c "hostname -I"`
+interface=eth0
+
+log() {
+	echo -n '> ' 
+
+	echo "`echo $@ | tr '\r' '\n'`"
+}
+
+block_one_host() {
+	container=$1
+	ip=$2
+
+	docker-compose exec --privileged $container bash -c "tc qdisc add dev $interface root handle 1: prio" 2>&1 > /dev/null
+	docker-compose exec --privileged $container bash -c "tc filter add dev $interface parent 1:0 protocol ip prio 1 u32 match ip dst $ip flowid 2:1" 2>&1 > /dev/null
+	docker-compose exec --privileged $container bash -c "tc qdisc add dev $interface parent 1:1 handle 2: netem loss 100%" 2>&1 > /dev/null
+}
+
+remove_partitoin() {
+	docker-compose exec --privileged zookeeper-1 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
+	docker-compose exec --privileged zookeeper-2 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
+	docker-compose exec --privileged zookeeper-3 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
+	docker-compose exec --privileged kafka-1 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
+	docker-compose exec --privileged kafka-2 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
+	docker-compose exec --privileged kafka-3 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
+	docker-compose exec --privileged kafka-4 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
+}
+
+send_message() {
+	container=$1
+	shift 1
+	msg=$@
+
+	log "Sending messages to $container - $msg"
+	docker-compose exec  $container bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic test --sync --request-required-acks -1 --request-timeout-ms 10000"
+}
+
+send_message_to_other_topic() {
+	container=$1
+	shift 1
+	msg=$@
+
+	log "Sending messages to $container - $msg"
+	docker-compose exec  $container bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic test_2 --sync --request-required-acks 1 --request-timeout-ms 10000"
+}
+
+read_message() {
+	container=$1
+	log "Messages from $container:"
+	log `docker-compose exec $container kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 1000`
+
+	if [ ! $? -eq 0 ]; then
+		log "Read unsuccessful" 
+	fi
+}
+
+get_state() {
+	log "State for partition:"
+	log `docker-compose exec zookeeper-3 zookeeper-shell localhost:2181 get /brokers/topics/test/partitions/0/state`
+}
+
+create_topic() {
+	log "Creating topic with min.isr=3"
+	log `docker-compose exec zookeeper-3 kafka-topics --zookeeper localhost:2181 --create --topic test --replica-assignment 1:2:3:4 --config min.insync.replicas=3`
+}
+
+
+main() {
+	create_topic
+	sleep 5
+	get_state
+	send_message kafka-1 'before partitions'
+
+	log "Killing zookeeper-3 and kafka-4"
+	docker-compose stop zookeeper-3
+	docker-compose stop kafka-4
+
+	send_message kafka-1 'after killing zookeeper-3 and kafka-4'
+
+	log "Loosing kafka-1, kafka-2 and zookeeper-1 and zookeeper-2"
+	docker-compose stop zookeeper-1
+	docker-compose stop zookeeper-2
+	docker-compose stop kafka-1
+	docker-compose stop kafka-2
+
+	log "Reconfiguring zookeeper-3 new quorum"
+	ZOOKEEPER_SERVERS="zookeeper-3:2888:3888" docker-compose up -d zookeeper-3 
+	sleep 5
+	get_state
+
+	log "Starting Kafka-4 and kafka-3"
+	docker-compose up -d kafka-4 
+	sleep 5
+	docker-compose up -d kafka-3
+
+	read_message kafka-4
+}
+
+main

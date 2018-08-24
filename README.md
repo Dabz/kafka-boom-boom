@@ -14,6 +14,9 @@ Those scenarios try to emulate a Kafka stretch cluster over 2 datacenters.
 - To ensure durability of messages:
   - _acks_ must be set to _all_, otherwise you might write to an _invalid_ leader
   - _min.insync.replicas_ must be set up to ensure that data is replicated on all desired physical location
+- If Zookeeper quorum is rebuild, there is actually no guarantee that the new quorum have all the latest data:
+  - this could results in data loss or in messages getting duplicated inside leaders 
+	- it's probably better to rely on hierarchical quorum to avoid those issues
 
 ## Scenarios
 
@@ -28,3 +31,9 @@ Current leader is currently on kafka-1 then kafka-1 block all incoming messages 
 Current leader is currently on kafka-1 then a network partition is simulated:
 - on one side kafka-1, kafka-2 and kafka-3
 - on another side kafka-4 and zookeeper 
+
+### Scenario 3
+
+4 Kafka brokers: kafka-1, kafka-2, kafka-3 and kafka-4 and 3 zookeeper. 
+For some reasons, you decide to rebuild the quorum of zookeeper (e.g. you lost a rack or a DC). 
+There is no guarantee, after rebuilding a quorum, that the nodes have all the required information. 
