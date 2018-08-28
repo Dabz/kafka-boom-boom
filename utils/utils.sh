@@ -54,7 +54,7 @@ send_message_to_topic() {
 read_message() {
 	container=$1
 	log "Messages from $container:"
-	timeout 5 docker-compose exec $container kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 1000
+	docker-compose exec $container timeout 15 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 100
 
 	if [ ! $? -eq 0 ]; then
 		log "Read unsuccessful" 
@@ -77,7 +77,7 @@ create_topic() {
 	min=$1
 
 	log "Creating topic with min.isr=$min and replication factor $repl"
-	log `docker-compose exec $container kafka-topics --zookeeper localhost:2181 --create --topic $topic --replication-factor $repl --partitions 1 --config min.insync.replicas=$min`
+	log `docker-compose exec $container kafka-topics --zookeeper localhost:2181 --create --topic $topic --replica-assignment $(seq $repl | xargs | tr ' ' ':') --config min.insync.replicas=$min`
 }
 
 

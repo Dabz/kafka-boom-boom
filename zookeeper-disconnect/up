@@ -1,0 +1,44 @@
+#!/bin/bash
+
+export CONFLUENT_VERSION=4.0.0
+
+docker-compose down -v
+docker-compose up -d 
+
+KAFKA_1_IP=`docker-compose exec kafka-1 bash -c "hostname -I"`
+KAFKA_2_IP=`docker-compose exec kafka-2 bash -c "hostname -I"`
+KAFKA_3_IP=`docker-compose exec kafka-3 bash -c "hostname -I"`
+KAFKA_4_IP=`docker-compose exec kafka-4 bash -c "hostname -I"`
+ZOO_IP=`docker-compose exec zookeeper bash -c "hostname -I"`
+
+source ../utils/utils.sh
+
+main() {
+
+	create_topic zookeeper test 4 3
+	sleep 15
+	get_state zookeeper
+	send_message kafka-1 'before partitions'
+	read_message kafka-1
+
+	log "Network partition between kafka-1 and zookeeper"
+	block_one_host kafka-1 $ZOO_IP
+
+	for i in `seq 100`; do
+		send_message kafka-2 'after partition on kafka-2 msg $i'
+	done
+
+	get_state zookeeper
+
+	sleep 15
+	log "Removing network partition"
+	remove_partition zookeeper kafka-1 kafka-2 kafka-3 kafka-4
+	sleep 15
+
+	get_state zookeeper
+
+	send_message kafka-1 'after resolution on kafka-1'
+	read_message kafka-1
+}
+
+main
