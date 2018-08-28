@@ -9,70 +9,29 @@ KAFKA_3_IP=`docker-compose exec kafka-3 bash -c "hostname -I"`
 ZOO_IP=`docker-compose exec zookeeper bash -c "hostname -I"`
 interface=eth0
 
-log() {
-	echo -n '> ' 
-
-	echo "`echo $@ | tr '\r' '\n'`"
-}
-
-remove_partitoin() {
-	docker-compose exec --privileged zookeeper bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
-	docker-compose exec --privileged kafka-1 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
-	docker-compose exec --privileged kafka-2 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
-	docker-compose exec --privileged kafka-3 bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
-}
-
-send_message() {
-	container=$1
-	shift 1
-	msg=$@
-
-	log "Sending messages to $container - $msg"
-	docker-compose exec $container bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic test --request-required-acks -1"
-}
-
-read_message() {
-	container=$1
-	log "Messages from $container:"
-	log `docker-compose exec $container kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 1000`
-
-	if [ ! $? -eq 0 ]; then
-		log "Read unsuccessful" 
-	fi
-}
-
-get_state() {
-	log "State for partition:"
-	log `docker-compose exec zookeeper zookeeper-shell localhost:2181 get /brokers/topics/test/partitions/0/state`
-}
-
-create_topic() {
-	log "Creating topic with min.isr=1"
-	log `docker-compose exec zookeeper kafka-topics --zookeeper localhost:2181 --create --topic test --replica-assignment 1:2`
-}
-
+source ../utils/utils.sh 
 
 main() {
 
-	create_topic
-	get_state
+	create_topic zookeeper test 3 2
+	get_state zookeeper
 	send_message kafka-1 'before partitions'
 	read_message kafka-1
 
-	log "Network partition  Kafka-1| Kafka-2,  Zookeeper "
+	log "Network partition  Kafka-1, Kafka-2 | Kafka-3,  Zookeeper "
 	docker-compose exec --privileged kafka-1 bash -c "tc qdisc add dev eth0 root netem loss 100%"
 
-	send_message kafka-1 'should not be ok, the invalid leader'
+	send_message kafka-3 'should not be ok, the invalid leader'
 	send_message kafka-1 'should be ok, the valid leader'
 
-	get_state
+	get_state zookeeper
 
 	log "Removing network partition"
-	remove_partitoin
+	remove_partition zookeeper kafka-1 kafka-2 kafka-3
 
 	sleep 15
 
-	get_state
+	get_state zookeeper
 
 	read_message kafka-1
 }
