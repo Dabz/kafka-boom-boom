@@ -13,16 +13,18 @@ source ../utils/utils.sh
 
 main() {
 
-	create_topic zookeeper test 3 2
+	create_topic zookeeper test 3 1
 	get_state zookeeper
 	send_message kafka-1 'before partitions'
 	read_message kafka-1
 
-	log "Network partition  Kafka-1, Kafka-2 | Kafka-3,  Zookeeper "
-	docker-compose exec --privileged kafka-1 bash -c "tc qdisc add dev eth0 root netem loss 100%"
+	log "Network partition  Kafka-1 | Kafka-2, Kafka-3,  Zookeeper "
+	block_one_host kafka-1 $KAFKA_2_IP
+	block_one_host kafka-1 $KAFKA_3_IP
+	block_one_host kafka-1 $ZOO_IP
 
-	send_message kafka-3 'should not be ok, the invalid leader'
-	send_message kafka-1 'should be ok, the valid leader'
+	send_message kafka-1 'should not be ok, the invalid leader'
+	send_message kafka-3 'should be ok, the valid leader'
 
 	get_state zookeeper
 
@@ -34,6 +36,7 @@ main() {
 	get_state zookeeper
 
 	read_message kafka-1
+	read_message kafka-3
 }
 
 main
