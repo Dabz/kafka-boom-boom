@@ -25,6 +25,8 @@ main() {
 	send_message kafka-1 'before network outage'
 	read_messages kafka-1 1
 
+	zookeeper_mode zookeeper-1 zookeeper-2 zookeeper-3
+
 	log 'Network outage starts'
 
     # rack A
@@ -39,17 +41,15 @@ main() {
     block_host zookeeper-3 $ZOO_1_IP $ZOO_2_IP
 
 	log "Let's wait for the timeouts to occur"
-	sleep 120
+	sleep 45
 
-	get_state zookeeper-1
-	get_state zookeeper-2
-	get_state zookeeper-3
+	zookeeper_mode zookeeper-1 zookeeper-2 zookeeper-3
 
 	log 'Network outage ends'
 	remove_partition kafka-1 kafka-2 kafka-3 kafka-4 zookeeper-1 zookeeper-2 zookeeper-3
 
 	log 'Waiting for the system to recover'
-	sleep 30
+	sleep 45
 
 	get_state zookeeper-1
 	get_state zookeeper-2

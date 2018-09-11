@@ -70,6 +70,18 @@ get_state() {
 	docker-compose exec $container zookeeper-shell localhost:2181 get /brokers/topics/test/partitions/0/state | grep '{' | grep '}'
 }
 
+zookeeper_mode() {
+	for container in $@; do
+	    mode=$(docker-compose exec $container bash -c "echo stat | nc localhost 2181 | grep Mode")
+
+	    if [ $? -eq 0 ]; then
+    	    log "$container $mode"
+        else
+            log "$container has no mode"
+        fi
+    done
+}
+
 create_topic() {
 	container=$1
 	shift 1

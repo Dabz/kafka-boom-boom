@@ -1,8 +1,7 @@
 #!/bin/bash
 
 docker-compose down -v
-ZOOKEEPER_SERVERS="zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888" docker-compose up -d 
-export ZOOKEEPER_SERVERS=""
+docker-compose up -d
 
 KAFKA_1_IP=`docker-compose exec kafka-1 bash -c "hostname -I"`
 KAFKA_2_IP=`docker-compose exec kafka-2 bash -c "hostname -I"`
@@ -25,23 +24,32 @@ main() {
 	send_message kafka-1 'before network outage'
 	read_messages kafka-1 1
 
+	zookeeper_mode zookeeper-1 zookeeper-2 zookeeper-3
+
 	log 'Network outage starts'
 
     block_host kafka-1 $KAFKA_2_IP $KAFKA_3_IP $KAFKA_4_IP $ZOO_1_IP $ZOO_2_IP $ZOO_3_IP
     block_host kafka-2 $KAFKA_1_IP $KAFKA_3_IP $KAFKA_4_IP $ZOO_1_IP $ZOO_2_IP $ZOO_3_IP
     block_host kafka-3 $KAFKA_1_IP $KAFKA_2_IP $KAFKA_4_IP $ZOO_1_IP $ZOO_2_IP $ZOO_3_IP
     block_host kafka-4 $KAFKA_1_IP $KAFKA_2_IP $KAFKA_3_IP $ZOO_1_IP $ZOO_2_IP $ZOO_3_IP
+    block_host zookeeper-1 $ZOO_2_IP $ZOO_3_IP
+    block_host zookeeper-2 $ZOO_1_IP $ZOO_3_IP
+    block_host zookeeper-3 $ZOO_2_IP $ZOO_2_IP
 
-	sleep 15
-	get_state zookeeper-3
+	log "Let's wait for the timeouts to occur"
+	sleep 45
+
+	zookeeper_mode zookeeper-1 zookeeper-2 zookeeper-3
 
 	log 'Network outage ends'
 	remove_partition kafka-1 kafka-2 kafka-3 kafka-4 zookeeper-1 zookeeper-2 zookeeper-3
 
 	log 'Waiting for the system to recover'
-	sleep 30
+	sleep 45
 
 	get_state zookeeper-1
+	zookeeper_mode zookeeper-1 zookeeper-2 zookeeper-3
+
 
 	send_message kafka-1 'after network outage'
 	read_messages kafka-1 2
