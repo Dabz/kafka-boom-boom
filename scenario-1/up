@@ -19,9 +19,7 @@ main() {
 	read_message kafka-1
 
 	log "Network partition  Kafka-1 | Kafka-2, Kafka-3,  Zookeeper "
-	block_one_host kafka-1 $KAFKA_2_IP
-	block_one_host kafka-1 $KAFKA_3_IP
-	block_one_host kafka-1 $ZOO_IP
+	block_host kafka-1 $KAFKA_2_IP $KAFKA_3_IP $ZOO_IP
 
 	send_message kafka-1 'should not be ok, the invalid leader'
 	send_message kafka-3 'should be ok, the valid leader'

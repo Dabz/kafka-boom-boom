@@ -20,19 +20,12 @@ main() {
 	read_message kafka-1
 
 	log "Network partition  Kafka-1, Kafka-2, Kafka-3 | Kafka-4  Zookeeper"
-	block_one_host zookeeper $KAFKA_1_IP
-	block_one_host zookeeper $KAFKA_2_IP
-	block_one_host zookeeper $KAFKA_3_IP
-	block_one_host kafka-1 $KAFKA_4_IP
-	block_one_host kafka-1 $ZOO_IP
-	block_one_host kafka-2 $KAFKA_4_IP
-	block_one_host kafka-2 $ZOO_IP
-	block_one_host kafka-3 $KAFKA_4_IP
-	block_one_host kafka-3 $ZOO_IP
+	block_host zookeeper $KAFKA_1_IP $KAFKA_2_IP $KAFKA_3_IP
+	block_host kafka-1 $KAFKA_4_IP $ZOO_IP
+	block_host kafka-2 $KAFKA_4_IP $ZOO_IP
+	block_host kafka-3 $KAFKA_4_IP $ZOO_IP
 
-	block_one_host kafka-4 $KAFKA_1_IP
-	block_one_host kafka-4 $KAFKA_2_IP
-	block_one_host kafka-4 $KAFKA_3_IP
+	block_host kafka-4 $KAFKA_1_IP $KAFKA_2_IP $KAFKA_3_IP
 
 	send_message kafka-1 'after partition on kafka-1 with 3 brokers'
 	send_message kafka-4 'after partition on kafka-4 with 1 broker'

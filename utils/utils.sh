@@ -14,13 +14,15 @@ log() {
 	echo "`echo $@ | tr '\r' '\n'`"
 }
 
-block_one_host() {
-	container=$1
-	ip=$2
 
+block_host() {
+	container=$1
+	shift 1
 	docker-compose exec --privileged $container bash -c "tc qdisc add dev $interface root handle 1: prio" 2>&1 > /dev/null
-	docker-compose exec --privileged $container bash -c "tc filter add dev $interface parent 1:0 protocol ip prio 1 u32 match ip dst $ip flowid 2:1" 2>&1 > /dev/null
 	docker-compose exec --privileged $container bash -c "tc qdisc add dev $interface parent 1:1 handle 2: netem loss 100%" 2>&1 > /dev/null
+	for ip in $@; do
+		docker-compose exec --privileged $container bash -c "tc filter add dev $interface parent 1:0 protocol ip prio 1 u32 match ip dst $ip flowid 2:1" 2>&1 > /dev/null
+	done
 }
 
 remove_partition() {
