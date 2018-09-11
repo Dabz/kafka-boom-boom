@@ -61,6 +61,17 @@ read_message() {
 	fi
 }
 
+read_n_messages() {
+	container=$1
+	number_of_messages_to_read=$2
+	log "Messages $number_of_messages_to_read from $container:"
+	docker-compose exec $container timeout 15 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 100 --max-messages $number_of_messages_to_read
+
+	if [ ! $? -eq 0 ]; then
+		log "Read unsuccessful" 
+	fi
+}
+
 get_state() {
 	container=$1
 	log "State for partition from $container"
