@@ -23,37 +23,14 @@ main() {
 	get_state zookeeper-1
 
 	send_message kafka-1 'before network outage'
-	read_n_messages kafka-1 1
+	read_messages kafka-1 1
 
 	log 'Network outage starts'
 
-    block_host kafka-1 $KAFKA_2_IP
-    block_host kafka-1 $KAFKA_3_IP
-    block_host kafka-1 $KAFKA_4_IP
-    block_host kafka-1 $ZOO_1_IP
-    block_host kafka-1 $ZOO_2_IP
-    block_host kafka-1 $ZOO_3_IP
-
-    block_host kafka-2 $KAFKA_1_IP
-    block_host kafka-2 $KAFKA_3_IP
-    block_host kafka-2 $KAFKA_4_IP
-    block_host kafka-2 $ZOO_1_IP
-    block_host kafka-2 $ZOO_2_IP
-    block_host kafka-2 $ZOO_3_IP
-
-    block_host kafka-3 $KAFKA_1_IP
-    block_host kafka-3 $KAFKA_2_IP
-    block_host kafka-3 $KAFKA_4_IP
-    block_host kafka-3 $ZOO_1_IP
-    block_host kafka-3 $ZOO_2_IP
-    block_host kafka-3 $ZOO_3_IP
-
-    block_host kafka-4 $KAFKA_1_IP
-    block_host kafka-4 $KAFKA_2_IP
-    block_host kafka-4 $KAFKA_3_IP
-    block_host kafka-4 $ZOO_1_IP
-    block_host kafka-4 $ZOO_2_IP
-    block_host kafka-4 $ZOO_3_IP
+    block_host kafka-1 $KAFKA_2_IP $KAFKA_3_IP $KAFKA_4_IP $ZOO_1_IP $ZOO_2_IP $ZOO_3_IP
+    block_host kafka-2 $KAFKA_1_IP $KAFKA_3_IP $KAFKA_4_IP $ZOO_1_IP $ZOO_2_IP $ZOO_3_IP
+    block_host kafka-3 $KAFKA_1_IP $KAFKA_2_IP $KAFKA_4_IP $ZOO_1_IP $ZOO_2_IP $ZOO_3_IP
+    block_host kafka-4 $KAFKA_1_IP $KAFKA_2_IP $KAFKA_3_IP $ZOO_1_IP $ZOO_2_IP $ZOO_3_IP
 
 	sleep 15
 	get_state zookeeper-3
@@ -67,7 +44,7 @@ main() {
 	get_state zookeeper-1
 
 	send_message kafka-1 'after network outage'
-	read_n_messages kafka-1 2
+	read_messages kafka-1 2
 }
 
 main

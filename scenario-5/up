@@ -1,7 +1,7 @@
 #!/bin/bash
 
 docker-compose down -v
-ZOOKEEPER_SERVERS="zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888" docker-compose up -d 
+ZOOKEEPER_SERVERS="zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888" docker-compose up -d
 export ZOOKEEPER_SERVERS=""
 
 KAFKA_1_IP=`docker-compose exec kafka-1 bash -c "hostname -I"`
@@ -16,14 +16,14 @@ interface=eth0
 source ../utils/utils.sh
 
 main() {
-	sleep 15
+	sleep 20
 	create_topic zookeeper-1 test 4 3
 	sleep 5
 
 	get_state zookeeper-1
 
 	send_message kafka-1 'before network outage'
-	read_n_messages kafka-1 1
+	read_messages kafka-1 1
 
 	log 'Network outage starts'
 
@@ -38,7 +38,9 @@ main() {
     block_host kafka-4 $KAFKA_1_IP $KAFKA_2_IP $ZOO_1_IP $ZOO_2_IP
     block_host zookeeper-3 $ZOO_1_IP $ZOO_2_IP
 
-	sleep 15
+	log "Let's wait for the timeouts to occur"
+	sleep 120
+
 	get_state zookeeper-1
 	get_state zookeeper-2
 	get_state zookeeper-3
@@ -54,7 +56,7 @@ main() {
 	get_state zookeeper-3
 
 	send_message kafka-1 'after network outage'
-	read_n_messages kafka-1 2
+	read_messages kafka-1 2
 }
 
 main

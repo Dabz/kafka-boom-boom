@@ -53,21 +53,11 @@ send_message_to_topic() {
 	echo
 }
 
-read_message() {
+read_messages() {
 	container=$1
-	log "Messages from $container:"
-	docker-compose exec $container timeout 15 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 100
-
-	if [ ! $? -eq 0 ]; then
-		log "Read unsuccessful" 
-	fi
-}
-
-read_n_messages() {
-	container=$1
-	number_of_messages_to_read=$2
-	log "Messages $number_of_messages_to_read from $container:"
-	docker-compose exec $container timeout 15 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 100 --max-messages $number_of_messages_to_read
+	number_of_messages_to_read=${2:-1}
+	log "Reading $number_of_messages_to_read from $container:"
+	docker-compose exec $container timeout 15 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 1000 --max-messages $number_of_messages_to_read
 
 	if [ ! $? -eq 0 ]; then
 		log "Read unsuccessful" 
