@@ -1,15 +1,15 @@
 #!/bin/bash
 
+source ../utils/utils.sh
+
 docker-compose down -v
 docker-compose up -d 
 
-KAFKA_1_IP=`docker-compose exec kafka-1 bash -c "hostname -I"`
-KAFKA_2_IP=`docker-compose exec kafka-2 bash -c "hostname -I"`
-KAFKA_3_IP=`docker-compose exec kafka-3 bash -c "hostname -I"`
-KAFKA_4_IP=`docker-compose exec kafka-4 bash -c "hostname -I"`
-ZOO_IP=`docker-compose exec zookeeper bash -c "hostname -I"`
-
-source ../utils/utils.sh
+KAFKA_1_IP=$(container_to_ip kafka-1)
+KAFKA_2_IP=$(container_to_ip kafka-2)
+KAFKA_3_IP=$(container_to_ip kafka-3)
+KAFKA_4_IP=$(container_to_ip kafka-4)
+ZOO_IP=$(container_to_ip zookeeper)
 
 main() {
 
@@ -20,19 +20,12 @@ main() {
 	read_message kafka-1
 
 	log "Network partition  Kafka-1, Kafka-2, Kafka-3 | Kafka-4  Zookeeper"
-	block_one_host zookeeper $KAFKA_1_IP
-	block_one_host zookeeper $KAFKA_2_IP
-	block_one_host zookeeper $KAFKA_3_IP
-	block_one_host kafka-1 $KAFKA_4_IP
-	block_one_host kafka-1 $ZOO_IP
-	block_one_host kafka-2 $KAFKA_4_IP
-	block_one_host kafka-2 $ZOO_IP
-	block_one_host kafka-3 $KAFKA_4_IP
-	block_one_host kafka-3 $ZOO_IP
+	block_host zookeeper $KAFKA_1_IP $KAFKA_2_IP $KAFKA_3_IP
+	block_host kafka-1 $KAFKA_4_IP $ZOO_IP
+	block_host kafka-2 $KAFKA_4_IP $ZOO_IP
+	block_host kafka-3 $KAFKA_4_IP $ZOO_IP
 
-	block_one_host kafka-4 $KAFKA_1_IP
-	block_one_host kafka-4 $KAFKA_2_IP
-	block_one_host kafka-4 $KAFKA_3_IP
+	block_host kafka-4 $KAFKA_1_IP $KAFKA_2_IP $KAFKA_3_IP
 
 	send_message kafka-1 'after partition on kafka-1 with 3 brokers'
 	send_message kafka-4 'after partition on kafka-4 with 1 broker'

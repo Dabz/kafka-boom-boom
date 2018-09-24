@@ -22,7 +22,7 @@ main() {
 	read_message kafka-1
 
 	log "Network partition between kafka-1 and zookeeper"
-	block_one_host kafka-1 $ZOO_IP
+	block_host kafka-1 $ZOO_IP
 
 	for i in `seq 100`; do
 		send_message kafka-2 'after partition on kafka-2 msg $i'
