@@ -18,7 +18,7 @@ interface=eth0
 
 
 log() {
-	echo -n '$> ' 
+	echo -n '$> '
 
 	echo "`echo $@ | tr '\r' '\n'`"
 }
@@ -49,7 +49,7 @@ remove_partition() {
 	for container in $@; do
         name=$(container_to_name $container)
 		docker exec --privileged -t $name bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
-	done 
+	done
 }
 
 send_message() {
@@ -81,10 +81,10 @@ read_messages() {
     name=$(container_to_name $container)
 	number_of_messages_to_read=${2:-1}
 	log "Reading $number_of_messages_to_read messages from $container:"
-	docker exec -t $name timeout 15 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 1000 --max-messages $number_of_messages_to_read
+	docker exec -t $name timeout 15 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 10000 --max-messages $number_of_messages_to_read
 
 	if [ ! $? -eq 0 ]; then
-		log "Read unsuccessful" 
+		log "Read unsuccessful"
 	fi
 }
 
