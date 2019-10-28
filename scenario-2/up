@@ -3,7 +3,7 @@
 source ../utils/utils.sh
 
 docker-compose down -v
-docker-compose up -d 
+docker-compose up -d
 
 KAFKA_1_IP=$(container_to_ip kafka-1)
 KAFKA_2_IP=$(container_to_ip kafka-2)
@@ -17,7 +17,7 @@ main() {
 	sleep 5
 	get_state zookeeper
 	send_message kafka-1 'before partitions'
-	read_message kafka-1
+	read_messages kafka-1
 
 	log "Network partition  Kafka-1, Kafka-2, Kafka-3 | Kafka-4  Zookeeper"
 	block_host zookeeper $KAFKA_1_IP $KAFKA_2_IP $KAFKA_3_IP
@@ -39,7 +39,7 @@ main() {
 
 	get_state zookeeper
 
-	read_message kafka-1
+	read_messages kafka-1
 }
 
 main

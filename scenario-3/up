@@ -3,7 +3,7 @@
 source ../utils/utils.sh
 
 docker-compose down -v
-ZOOKEEPER_SERVERS="zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888" docker-compose up -d 
+ZOOKEEPER_SERVERS="zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888" docker-compose up -d
 export ZOOKEEPER_SERVERS=""
 
 KAFKA_1_IP=$(container_to_ip kafka-1)
@@ -35,16 +35,16 @@ main() {
 	docker-compose stop kafka-2
 
 	log "Reconfiguring zookeeper-3 new quorum"
-	ZOOKEEPER_SERVERS="zookeeper-3:2888:3888" docker-compose up -d zookeeper-3 
+	ZOOKEEPER_SERVERS="zookeeper-3:2888:3888" docker-compose up -d zookeeper-3
 	sleep 5
-	get_state zookeeper-3 
+	get_state zookeeper-3
 
 	log "Starting Kafka-4 and kafka-3"
-	docker-compose up -d kafka-4 
+	docker-compose up -d kafka-4
 	docker-compose up -d kafka-3
 	sleep 15
 
-	read_message kafka-4
+	read_messages kafka-4
 }
 
 main
