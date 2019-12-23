@@ -18,9 +18,9 @@ interface=eth0
 
 
 log() {
-	echo -n '$> '
+    echo -n '$> '
 
-	echo "`echo $@ | tr '\r' '\n'`"
+    echo "`echo $@ | tr '\r' '\n'`"
 }
 
 container_to_name() {
@@ -46,62 +46,62 @@ block_host() {
 }
 
 remove_partition() {
-	for container in $@; do
+    for container in $@; do
         name=$(container_to_name $container)
-		docker exec --privileged -t $name bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
-	done
+        docker exec --privileged -t $name bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
+    done
 }
 
 send_message() {
     container=$1
     name=$(container_to_name $container)
-	shift 1
-	msg=$@
+    shift 1
+    msg=$@
 
-	log "Sending messages to $container - $msg"
-	docker exec -t $name bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic test --sync --request-required-acks -1 --request-timeout-ms 10000"
-	echo
+    log "Sending messages to $container - $msg"
+    docker exec -t $name bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic test --sync --request-required-acks -1 --request-timeout-ms 10000"
+    echo
 }
 
 send_message_to_topic() {
     container=$1
     name=$(container_to_name $container)
-	shift 1
-	topic=$1
-	shift 1
-	msg=$@
+    shift 1
+    topic=$1
+    shift 1
+    msg=$@
 
-	log "Sending messages to $container - $msg"
-	docker-compose exec -t $name bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic $topic --sync --request-required-acks 1 --request-timeout-ms 10000"
-	echo
+    log "Sending messages to $container - $msg"
+    docker-compose exec -t $name bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic $topic --sync --request-required-acks 1 --request-timeout-ms 10000"
+    echo
 }
 
 read_messages() {
     container=$1
     name=$(container_to_name $container)
-	number_of_messages_to_read=${2:-1}
-	log "Reading $number_of_messages_to_read messages from $container:"
-	docker exec -t $name timeout 15 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 10000 --max-messages $number_of_messages_to_read
+    number_of_messages_to_read=${2:-1}
+    log "Reading $number_of_messages_to_read messages from $container:"
+    docker exec -t $name timeout 15 kafka-console-consumer --bootstrap-server localhost:9092 --topic test --from-beginning --timeout-ms 10000 --max-messages $number_of_messages_to_read
 
-	if [ ! $? -eq 0 ]; then
-		log "Read unsuccessful"
-	fi
+    if [ ! $? -eq 0 ]; then
+        log "Read unsuccessful"
+    fi
 }
 
 get_state() {
     container=$1
     name=$(container_to_name $container)
-	log "State for partition from $container"
-	docker exec -t $name zookeeper-shell localhost:2181 get /brokers/topics/test/partitions/0/state | grep '{' | grep '}'
+    log "State for partition from $container"
+    docker exec -t $name zookeeper-shell localhost:2181 get /brokers/topics/test/partitions/0/state | grep '{' | grep '}'
 }
 
 zookeeper_mode() {
-	for container in $@; do
+    for container in $@; do
         name=$(container_to_name $container)
-	    mode=$(docker exec -t $name bash -c "echo stat | nc localhost 2181 | grep Mode")
+        mode=$(docker exec -t $name bash -c "echo stat | nc localhost 2181 | grep Mode")
 
-	    if [ $? -eq 0 ]; then
-    	    log "$container $mode"
+        if [ $? -eq 0 ]; then
+            log "$container $mode"
         else
             log "$container has no mode"
         fi
@@ -111,15 +111,15 @@ zookeeper_mode() {
 create_topic() {
     container=$1
     name=$(container_to_name $container)
-	shift 1
-	topic=$1
-	shift 1
-	repl=$1
-	shift 1
-	min=$1
+    shift 1
+    topic=$1
+    shift 1
+    repl=$1
+    shift 1
+    min=$1
 
-	log "Creating topic with min.isr=$min and replication factor $repl"
-	log `docker exec -t $name kafka-topics --zookeeper localhost:2181 --create --topic $topic --replica-assignment $(seq $repl | xargs | tr ' ' ':') --config min.insync.replicas=$min`
+    log "Creating topic with min.isr=$min and replication factor $repl"
+    log `docker exec -t $name kafka-topics --zookeeper localhost:2181 --create --topic $topic --replica-assignment $(seq $repl | xargs | tr ' ' ':') --config min.insync.replicas=$min`
 }
 
 
