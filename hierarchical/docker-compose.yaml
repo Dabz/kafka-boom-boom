@@ -1,7 +1,9 @@
 version: "3"
 services:
   zookeeper-1:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper-1
     environment:
       ZOOKEEPER_SERVER_ID: "1"
@@ -10,7 +12,9 @@ services:
       ZOOKEEPER_GROUPS: 1:2:3;4:5:6
 
   zookeeper-2:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper-2
     environment:
       ZOOKEEPER_SERVER_ID: "2"
@@ -19,7 +23,9 @@ services:
       ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888;zookeeper-4:2888:3888;zookeeper-5:2888:3888;zookeeper-6:2888:3888
 
   zookeeper-3:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper-3
     environment:
       ZOOKEEPER_SERVER_ID: "3"
@@ -28,7 +34,9 @@ services:
       ZOOKEEPER_GROUPS: 1:2:3;4:5:6
 
   zookeeper-4:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper-4
     environment:
       ZOOKEEPER_SERVER_ID: "4"
@@ -37,7 +45,9 @@ services:
       ZOOKEEPER_GROUPS: 1:2:3;4:5:6
 
   zookeeper-5:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper-5
     environment:
       ZOOKEEPER_SERVER_ID: "5"
@@ -46,7 +56,9 @@ services:
       ZOOKEEPER_GROUPS: 1:2:3;4:5:6
 
   zookeeper-6:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper-6
     environment:
       ZOOKEEPER_SERVER_ID: "6"
@@ -55,7 +67,9 @@ services:
       ZOOKEEPER_GROUPS: 1:2:3;4:5:6
 
   kafka-1:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-1
     depends_on:
       - zookeeper-1
@@ -68,7 +82,9 @@ services:
       KAFKA_BROKER_ID: "1"
 
   kafka-2:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-2
     depends_on:
       - zookeeper-1
@@ -81,7 +97,9 @@ services:
       KAFKA_BROKER_ID: "2"
 
   kafka-3:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-3
     depends_on:
       - zookeeper-1
@@ -94,7 +112,9 @@ services:
       KAFKA_BROKER_ID: "3"
 
   kafka-4:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-4
     depends_on:
       - zookeeper-1

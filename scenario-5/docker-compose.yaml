@@ -1,7 +1,9 @@
 version: "3"
 services:
   zookeeper-1:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper-1
     environment:
       ZOOKEEPER_SERVER_ID: "1"
@@ -9,7 +11,9 @@ services:
       ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
 
   zookeeper-2:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper-2
     environment:
       ZOOKEEPER_SERVER_ID: "2"
@@ -17,7 +21,9 @@ services:
       ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
 
   zookeeper-3:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper-3
     environment:
       ZOOKEEPER_SERVER_ID: "3"
@@ -25,7 +31,9 @@ services:
       ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
 
   kafka-1:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-1
     depends_on:
       - zookeeper-1
@@ -39,7 +47,9 @@ services:
       KAFKA_BROKER_RACK: rack-a
 
   kafka-2:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-2
     depends_on:
       - zookeeper-1
@@ -53,7 +63,9 @@ services:
       KAFKA_BROKER_RACK: rack-a
 
   kafka-3:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-3
     depends_on:
       - zookeeper-1
@@ -67,7 +79,9 @@ services:
       KAFKA_BROKER_RACK: rack-b
 
   kafka-4:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-4
     depends_on:
       - zookeeper-1
