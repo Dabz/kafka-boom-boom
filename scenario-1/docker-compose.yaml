@@ -1,13 +1,17 @@
 version: "2"
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
 
   kafka-1:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-1
     depends_on:
       - zookeeper
@@ -18,7 +22,9 @@ services:
       KAFKA_BROKER_ID: "1"
 
   kafka-2:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-2
     depends_on:
       - zookeeper
@@ -29,7 +35,9 @@ services:
       KAFKA_BROKER_ID: "2"
 
   kafka-3:
-    image: confluentinc/cp-kafka
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-3
     depends_on:
       - zookeeper
@@ -38,4 +46,3 @@ services:
       KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-3:9092"
       KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: "1"
       KAFKA_BROKER_ID: "3"
-

@@ -1,14 +1,18 @@
 version: "3"
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:${CONFLUENT_VERSION}
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
     hostname: zookeeper
     environment:
       zk_id: "1"
       ZOOKEEPER_CLIENT_PORT: 2181
 
   kafka-1:
-    image: confluentinc/cp-kafka:${CONFLUENT_VERSION}
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-1
     depends_on:
       - zookeeper
@@ -20,7 +24,9 @@ services:
       KAFKA_BROKER_ID: "1"
 
   kafka-2:
-    image: confluentinc/cp-kafka:${CONFLUENT_VERSION}
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-2
     depends_on:
       - zookeeper
@@ -32,7 +38,9 @@ services:
       KAFKA_LOG4J_ROOT_LOGLEVEL: "TRACE"
 
   kafka-3:
-    image: confluentinc/cp-kafka:${CONFLUENT_VERSION}
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-3
     depends_on:
       - zookeeper
@@ -44,7 +52,9 @@ services:
       KAFKA_LOG4J_ROOT_LOGLEVEL: "TRACE"
 
   kafka-4:
-    image: confluentinc/cp-kafka:${CONFLUENT_VERSION}
+    build:
+      context: ../
+      dockerfile: Dockerfile.kafka
     hostname: kafka-4
     depends_on:
       - zookeeper
