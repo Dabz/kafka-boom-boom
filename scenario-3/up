@@ -17,7 +17,7 @@ interface=eth0
 
 main() {
 	sleep 15
-	create_topic zookeeper-1 test 4 3
+	create_topic zookeeper-1 test 1 4 3
 	sleep 5
 	get_state zookeeper-3
 	send_message kafka-1 'before partitions'
