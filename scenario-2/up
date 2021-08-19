@@ -13,7 +13,7 @@ ZOO_IP=$(container_to_ip zookeeper)
 
 main() {
 
-	create_topic zookeeper test 4 3
+	create_topic zookeeper test 1 4 3
 	sleep 5
 	get_state zookeeper
 	send_message kafka-1 'before partitions'
