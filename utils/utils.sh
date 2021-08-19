@@ -76,7 +76,7 @@ send_message_to_topic() {
     msg=$@
 
     log "Sending messages to $container - $msg"
-    docker-compose exec -t $name bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic $topic --sync --request-required-acks 1 --request-timeout-ms 10000"
+    docker-compose exec -t $name bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic $topic --sync --request-required-acks -1 --request-timeout-ms 10000"
     echo
 }
 
