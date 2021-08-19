@@ -21,7 +21,7 @@ main() {
 	describe_topic zookeeper-1 test
 
 	for i in `seq 10`; do
-		send_message kafka-2 "before network partition on kafka-1 msg $i"
+		send_message kafka-2 "before network partition on kafka-3 msg $i"
 	done
 
 	log 'Network outage starts'
@@ -34,25 +34,38 @@ main() {
 
 	describe_topic zookeeper-1 test
 
+  log "So far so good no ISR shrink as per https://issues.apache.org/jira/browse/KAFKA-7152"
+	log "Let's write some messages from kafka-2, it should be ok we few messages timing out because we can't talk to kafka-3 that is the leader"
 	for i in `seq 10`; do
-		send_message kafka-2 "after network partition on kafka-1 msg $i"
+		send_message kafka-2 "after network partition on kafka-3, msg $i"
 	done
 
+	log "Still no ISR shrink as per https://issues.apache.org/jira/browse/KAFKA-7152 as there is no divergence"
 	describe_topic zookeeper-1 test
 
-	log "Let's wait a bit more"
-	sleep 45
+  log "Let's write some messages from kafka-3, should work with some timeouts as we send from kafka-3 that will be writing to all partitions but few with less than min.isr"
+	for i in `seq 10`; do
+		send_message kafka-2 "after network partition on kafka-3, msg $i"
+	done
 
+  log "Wait for replica.lag.time.max.ms to kick in"
+  sleep 45
+
+	describe_topic zookeeper-1 test
+	log "Still no ISR Shrink in theory ..."
+
+  log "Stop kafka-3"
 	docker-compose stop kafka-3
 
 	describe_topic zookeeper-1 test
+	log "ISR Shrink occured, kafka-3 is not leader anymore that's expected, but we should be able to write as per the min.isr constraint we have"
 
 	for i in `seq 10`; do
-		send_message kafka-2 "after shutdown of kafka-1 msg $i"
+		send_message kafka-2 "after shutdown of kafka-3 msg $i"
 	done
 
 	log 'Network outage ends'
-	remove_partition kafka-2 kafka-3
+	remove_partition kafka-1 kafka-2
 	docker-compose start kafka-3
 
 	log 'Waiting for the system to recover'
