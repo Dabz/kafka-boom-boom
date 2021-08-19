@@ -41,7 +41,7 @@ block_host() {
     # https://serverfault.com/a/906499
     docker exec --privileged -t $name bash -c "tc qdisc add dev $interface root handle 1: prio" 2>&1
     for ip in $@; do
-        docker exec --privileged -t $name bash -c "tc filter add dev $interface protocol ip parent 1: prio 1 u32 match ip dst $ip flowid 1:1" 2>&1
+        docker exec --privileged -t $name bash -c "tc filter add dev $interface protocol ip parent 1: prio 1 u32 match ip dst $ip match ip dport 9092 0xffff flowid 1:1" 2>&1
     done
     docker exec --privileged -t $name bash -c "tc filter add dev $interface protocol all parent 1: prio 2 u32 match ip dst 0.0.0.0/0 flowid 1:2" 2>&1
     docker exec --privileged -t $name bash -c "tc filter add dev $interface protocol all parent 1: prio 2 u32 match ip protocol 1 0xff flowid 1:2" 2>&1
