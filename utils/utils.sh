@@ -49,10 +49,29 @@ block_host() {
     docker exec --privileged -t $name bash -c "tc qdisc add dev $interface parent 1:2 handle 20: sfq" 2>&1
 }
 
+block_port() {
+    container=$1
+    name=$(container_to_name $container)
+    shift 1
+    port=$1
+    shift 1
+    # https://serverfault.com/a/906499
+    docker exec --privileged -t $name bash -c "tc qdisc add dev $interface root handle 1: prio" 2>&1
+    for ip in $@; do
+        log "block container $container -> $ip:$port"
+        docker exec --privileged -t $name bash -c "tc filter add dev $interface protocol ip parent 1: prio 1 u32 match ip dst $ip match ip dport $port 0xffff flowid 1:1" 2>&1
+    done
+    docker exec --privileged -t $name bash -c "tc filter add dev $interface protocol all parent 1: prio 2 u32 match ip dst 0.0.0.0/0 flowid 1:2" 2>&1
+    docker exec --privileged -t $name bash -c "tc filter add dev $interface protocol all parent 1: prio 2 u32 match ip protocol 1 0xff flowid 1:2" 2>&1
+    docker exec --privileged -t $name bash -c "tc qdisc add dev $interface parent 1:1 handle 10: netem loss 100%" 2>&1
+    docker exec --privileged -t $name bash -c "tc qdisc add dev $interface parent 1:2 handle 20: sfq" 2>&1
+}
+
 remove_partition() {
     for container in $@; do
         name=$(container_to_name $container)
         docker exec --privileged -t $name bash -c "tc qdisc del dev $interface root" 2>&1 > /dev/null
+        docker exec --privileged -t $name bash -c "tc filter del dev $interface" 2>&1 > /dev/null
     done
 }
 
@@ -76,7 +95,7 @@ send_message_to_topic() {
     msg=$@
 
     log "Sending messages to $container - $msg"
-    docker-compose exec -t $name bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic $topic --sync --request-required-acks 1 --request-timeout-ms 10000"
+    docker-compose exec -t $name bash -c "echo $msg | kafka-console-producer --broker-list localhost:9092 --topic $topic --sync --request-required-acks -1 --request-timeout-ms 10000"
     echo
 }
 

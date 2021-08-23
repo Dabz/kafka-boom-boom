@@ -20,39 +20,47 @@ main() {
 
 	describe_topic zookeeper-1 test
 
-	for i in `seq 10`; do
-		send_message kafka-2 "before network partition on kafka-1 msg $i"
+	for i in `seq 9`; do
+		send_message kafka-2 "before network partition on kafka-3 msg $i"
 	done
 
-	log 'Network outage starts'
+	log 'Network outage starts on kafka-3'
 
-  block_host kafka-1 $KAFKA_3_IP
-	block_host kafka-2 $KAFKA_3_IP
+    block_port kafka-1 9092 $KAFKA_3_IP
+	block_port kafka-2 9092 $KAFKA_3_IP
 
-	log "Let's wait for the timeouts to occur"
-	sleep 45
-
-	describe_topic zookeeper-1 test
-
-	for i in `seq 10`; do
-		send_message kafka-2 "after network partition on kafka-1 msg $i"
+	for i in `seq 3`; do
+		send_message kafka-3 "after network partition on kafka-3 msg $i"
 	done
 
 	describe_topic zookeeper-1 test
+	
+	# log "Let's wait for the timeouts to occur"
+	# sleep 45
 
-	log "Let's wait a bit more"
-	sleep 45
+	# describe_topic zookeeper-1 test
 
+	for i in `seq 3`; do
+		send_message kafka-2 "after network partition on kafka-3 msg $i"
+	done
+
+	describe_topic zookeeper-1 test
+
+	# log "Let's wait a bit more"
+	# sleep 45
+
+	log "Stoping kafka-3"
 	docker-compose stop kafka-3
 
+	sleep 5
 	describe_topic zookeeper-1 test
 
-	for i in `seq 10`; do
-		send_message kafka-2 "after shutdown of kafka-1 msg $i"
+	for i in `seq 3`; do
+		send_message kafka-2 "after shutdown of kafka-3 msg $i"
 	done
 
 	log 'Network outage ends'
-	remove_partition kafka-2 kafka-3
+	remove_partition kafka-1 kafka-2
 	docker-compose start kafka-3
 
 	log 'Waiting for the system to recover'
@@ -60,7 +68,7 @@ main() {
 
 	describe_topic zookeeper-1 test
 
-	for i in `seq 10`; do
+	for i in `seq 9`; do
 		send_message kafka-2 "back to normal msg $i"
 	done
 
