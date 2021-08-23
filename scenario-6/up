@@ -20,47 +20,37 @@ main() {
 
 	describe_topic zookeeper-1 test
 
-	for i in `seq 9`; do
+	for i in $(seq 9); do
 		send_message kafka-2 "before network partition on kafka-3 msg $i"
 	done
 
 	log 'Network outage starts on kafka-3'
 
-    block_port kafka-1 9092 $KAFKA_3_IP
+  block_port kafka-1 9092 $KAFKA_3_IP
 	block_port kafka-2 9092 $KAFKA_3_IP
 
-	for i in `seq 3`; do
+
+  log "If message are written to kafka-3 partition, the LEO will get updated, even with acks=all, so replicas will no more be insync and removed:  https://issues.apache.org/jira/browse/KAFKA-7152"
+	log "Let's write some messages from kafka-3, to shrink ISR"
+	for i in $(seq 6); do
 		send_message kafka-3 "after network partition on kafka-3 msg $i"
 	done
 
 	describe_topic zookeeper-1 test
 
-	# log "Let's wait for the timeouts to occur"
-	# sleep 45
-
-	# describe_topic zookeeper-1 test
-
-	for i in `seq 3`; do
-		send_message kafka-2 "after network partition on kafka-3 msg $i"
-	done
-
-	describe_topic zookeeper-1 test
-
-	# log "Let's wait a bit more"
-	# sleep 45
-
-	log "Stoping kafka-3"
+  log "Stop kafka-3"
 	docker-compose stop kafka-3
 
-	sleep 5
 	describe_topic zookeeper-1 test
+	log "kafka-3 still leader as the only one in ISR and unclean election not enabled"
+	log "Messages sent to partition where kafka-3 is leader will fail"
 
-	for i in `seq 3`; do
+	for i in $(seq 6); do
 		send_message kafka-2 "after shutdown of kafka-3 msg $i"
 	done
 
 	log 'Network outage ends'
-	remove_partition kafka-2 kafka-3
+	remove_partition kafka-1 kafka-2
 	docker-compose start kafka-3
 
 	log 'Waiting for the system to recover'
@@ -68,7 +58,7 @@ main() {
 
 	describe_topic zookeeper-1 test
 
-	for i in `seq 9`; do
+	for i in $(seq 9); do
 		send_message kafka-2 "back to normal msg $i"
 	done
 

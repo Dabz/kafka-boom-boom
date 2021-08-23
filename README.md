@@ -59,3 +59,18 @@ Network setup:
 We simulate a DC network split.
 
 When the network comes back the quorum is reformed, and the cluster is healthy.
+
+### Scenario 6 - Broker connection loss
+
+Network setup:
+* DC-A: ZK-1, Kafka-1
+* DC-B: ZK-2, Kafka-2
+* DC-C: ZK-3, Kafka-3
+
+We simulate the following connectivity loss:
+* Kafka-1 --> X Kafka-3
+* Kafka-2 --> X Kafka-3
+
+All other connections are still up.
+All partitions where Kafka-3 is the leader are unavailable.
+If we stop Kafka-3, they are still unavailable as unclean leader election is not enabled and Kafka-3 is the only broker in ISR.
