@@ -25,7 +25,7 @@ log() {
 
 container_to_name() {
     container=$1
-    echo "${PWD##*/}_${container}_1"
+    echo "${PWD##*/}-${container}-1"
 }
 
 container_to_ip() {
