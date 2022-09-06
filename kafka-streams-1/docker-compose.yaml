@@ -1,0 +1,107 @@
+version: "3"
+services:
+  zookeeper-1:
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
+    hostname: zookeeper-1
+    environment:
+      ZOOKEEPER_SERVER_ID: "1"
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+
+  zookeeper-2:
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
+    hostname: zookeeper-2
+    environment:
+      ZOOKEEPER_SERVER_ID: "2"
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+
+  zookeeper-3:
+    build:
+      context: ../
+      dockerfile: Dockerfile.zookeeper
+    hostname: zookeeper-3
+    environment:
+      ZOOKEEPER_SERVER_ID: "3"
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+
+  kafka-1:
+    build:
+      context: ./
+      dockerfile: Dockerfile.kafka
+    hostname: kafka-1
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-1:9092,OUTSIDE://localhost:9082"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 4
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 4
+      KAFKA_BROKER_ID: "1"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
+    ports:
+      - 9082:9082
+
+  kafka-2:
+    build:
+      context: ./
+      dockerfile: Dockerfile.kafka
+    hostname: kafka-2
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-2:9092,OUTSIDE://localhost:9083"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 4
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 4
+      KAFKA_BROKER_ID: "2"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
+    ports:
+      - 9083:9083
+
+  kafka-3:
+    build:
+      context: ./
+      dockerfile: Dockerfile.kafka
+    hostname: kafka-3
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-3:9092,OUTSIDE://localhost:9084"
+      KAFKA_BROKER_ID: "3"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 4
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 4
+    ports:
+      - 9084:9084
+
+  kafka-4:
+    build:
+      context: ./
+      dockerfile: Dockerfile.kafka
+    hostname: kafka-4
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181"
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-4:9092,OUTSIDE://localhost:9085"
+      KAFKA_BROKER_ID: "4"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 4
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 4
+    ports:
+      - 9085:9085

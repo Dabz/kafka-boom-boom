@@ -1,0 +1,27 @@
+#!/bin/bash
+
+source ../utils/utils.sh
+
+docker-compose down -v
+docker-compose up -d
+
+KAFKA_1_IP=$(container_to_ip kafka-1)
+KAFKA_2_IP=$(container_to_ip kafka-2)
+KAFKA_3_IP=$(container_to_ip kafka-3)
+KAFKA_4_IP=$(container_to_ip kafka-4)
+ZOO_1_IP=$(container_to_ip zookeeper-1)
+ZOO_2_IP=$(container_to_ip zookeeper-2)
+ZOO_3_IP=$(container_to_ip zookeeper-3)
+interface=eth0
+
+main() {
+  add_delay kafka-1 35.0 $KAFKA_3_IP $KAFKA_4_IP $ZOO_3_IP
+  add_delay kafka-2 35.0 $KAFKA_3_IP $KAFKA_4_IP $ZOO_3_IP
+  add_delay kafka-3 35.0 $KAFKA_1_IP $KAFKA_2_IP $ZOO_1_IP $ZOO_2_IP
+  add_delay kafka-4 35.0 $KAFKA_1_IP $KAFKA_2_IP $ZOO_1_IP $ZOO_2_IP
+  sleep 15
+	create_topic zookeeper-1 input 24 4 2
+	create_topic zookeeper-1 output 24 4 2
+}
+
+main
